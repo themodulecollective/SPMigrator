@@ -11,9 +11,9 @@ $SQLFolder = Join-Path -Path $ModuleFolder -ChildPath 'sql'
 #Write-Information -MessageData "SQL Folder  = $SQLFolder" -InformationAction Continue
 
 $Script:SQLFiles = @(
-  $(Join-Path -Path $(Join-Path -Path $SQLFolder -ChildPath 'reports') -ChildPath 'MigrationList.sql')
-  $(Join-Path -Path $(Join-Path -Path $SQLFolder -ChildPath 'reports') -ChildPath 'MigrationWaveList.sql')
-  $(Join-Path -Path $(Join-Path -Path $SQLFolder -ChildPath 'reports') -ChildPath 'SiteList.sql')
+  #$(Join-Path -Path $(Join-Path -Path $SQLFolder -ChildPath 'reports') -ChildPath 'MigrationList.sql')
+  #$(Join-Path -Path $(Join-Path -Path $SQLFolder -ChildPath 'reports') -ChildPath 'MigrationWaveList.sql')
+  #$(Join-Path -Path $(Join-Path -Path $SQLFolder -ChildPath 'reports') -ChildPath 'SiteList.sql')
 )
 
 $Script:ModuleFiles = @(
