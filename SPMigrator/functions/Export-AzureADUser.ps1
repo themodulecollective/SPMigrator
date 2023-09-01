@@ -38,14 +38,14 @@
 
     $DateString = Get-Date -Format yyyyMMddhhmmss
 
-    $Tenant = (Get-MGContext).TenantID
+    $TenantID = (Get-MGContext).TenantID
 
-    $OutputFileName = $Tenant + 'Users' + 'AsOf' + $DateString
+    $OutputFileName = $TenantID + 'Users' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xml')
 
     $Users = get-oguser -Property $Properties
 
-    $Users | Export-Clixml -Path $outputFilePath
+    $Users | Select-Object -property *,@{n='TenantID'; e={$TenantID}}  Export-Clixml -Path $outputFilePath
 
     if ($CompressOutput) {
         $ArchivePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.zip')
