@@ -23,7 +23,7 @@ foreach ($s in $SQLFiles)
 $OnRemoveScript = {
   # perform cleanup
   Write-Verbose -Message 'Removing Module Items from Global Scope'
-  Remove-WaveDataGlobalVariable
+  #Remove-WaveDataGlobalVariable
 }
 
 $ExecutionContext.SessionState.Module.OnRemove += $OnRemoveScript
