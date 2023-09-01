@@ -45,7 +45,7 @@
 
     $Users = get-oguser -Property $Properties
 
-    $Users | Select-Object -property *,@{n='TenantID'; e={$TenantID}}  Export-Clixml -Path $outputFilePath
+    $Users | Select-Object -property *,@{n='TenantID'; e={$TenantID}} | Export-Clixml -Path $outputFilePath
 
     if ($CompressOutput) {
         $ArchivePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.zip')
