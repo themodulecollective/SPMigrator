@@ -79,6 +79,7 @@
         'Export-AzureADLicensing'
         'Export-AzureADUserLicensing'
         'Export-AzureADUser'
+        'Export-AzureADGroup'
         'Export-ComplianceRetentionPolicy'
         'Export-SPMReport'
         'Get-SPMMigrationList'
