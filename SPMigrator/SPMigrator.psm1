@@ -22,6 +22,7 @@ $Script:ModuleFiles = @(
   $(Join-Path -Path $functions -ChildPath Export-ADUser.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADUser.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADGroup.ps1)
+  $(Join-Path -Path $functions -ChildPath Export-UnifiedGroupDrive.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADLicensing.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADUserLicensing.ps1)
   $(Join-Path -Path $functions -ChildPath Export-ComplianceRetentionPolicy.ps1)

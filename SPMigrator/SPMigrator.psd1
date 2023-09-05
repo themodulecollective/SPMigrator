@@ -80,6 +80,7 @@
         'Export-AzureADUserLicensing'
         'Export-AzureADUser'
         'Export-AzureADGroup'
+        'Export-UnifiedGroupDrive'
         'Export-ComplianceRetentionPolicy'
         'Export-SPMReport'
         'Get-SPMMigrationList'
@@ -146,5 +147,5 @@
     # DefaultCommandPrefix = ''
 
     # DefaultCommandPrefix}=}''
-
+}}
 }
