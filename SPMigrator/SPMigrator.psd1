@@ -147,5 +147,4 @@
     # DefaultCommandPrefix = ''
 
     # DefaultCommandPrefix}=}''
-}}
 }
