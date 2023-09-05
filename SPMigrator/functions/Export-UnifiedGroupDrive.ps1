@@ -24,8 +24,10 @@
     $OutputFileName = $TenantID + 'GroupDrives' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
 
+    Write-Information -MessageData 'Getting All Entra Groups'
     $Groups = Get-OGGroup -Property $Property -All
 
+    Write-Information -MessageData 'Filtering Entra Groups for Unified Groups, then getting the Group Drive'
     $UnifiedGroupDrives = @(@($Groups |
             Select-Object -ExcludeProperty groupTypes -Property *,
             @{n='groupType'; e={$_.groupTypes -join '|'}}).where({
