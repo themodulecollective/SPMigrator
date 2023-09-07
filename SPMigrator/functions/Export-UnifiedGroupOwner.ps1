@@ -21,17 +21,19 @@
 
     $TenantID = (Get-MgContext).TenantID
 
-    $OutputFileName = $TenantID + 'GroupDrives' + 'AsOf' + $DateString
+    $OutputFileName = $TenantID + 'GroupOwners' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
 
     Write-Information -MessageData 'Getting All Entra Groups'
-    $Groups = Get-OGGroup -Property $Property -UnifiedAll
+    $Groups = Get-OGGroup -UnifiedAll -Property $Property
 
-    Write-Information -MessageData 'Filtering Entra Groups for Unified Groups, then getting the Group Drive'
-    $UnifiedGroupDrives = @($Groups.foreach({
-                Get-OGGroupDrive -GroupID $_.ID | Select-Object -Property *, @{n='TenantID'; e={$TenantID}}
+    Write-Information -MessageData 'Filtering Entra Groups for Unified Groups, then getting the Group Owners'
+
+    $UnifiedGroupOwners = @($Groups.foreach({
+                $GID = $_.ID
+                Get-MgGroupOwner -GroupID $_.ID |
+                Select-Object -Property @{n='OwnerID';e={$_.ID}},@{n='GroupID';e={$GID}} -ExcludeProperty *
             }))
 
-    $UnifiedGroupDrives | Export-Excel -Path $OutputFilePath -WorksheetName UnifiedGroupDrives -TableName UnifiedGroupDrives -TableStyle Medium4
-
+    $UnifiedGroupOwners | Export-Excel -Path $OutputFilePath -WorksheetName UnifiedGroupOwners -TableName UnifiedGroupOwners -TableStyle Medium4
 }
