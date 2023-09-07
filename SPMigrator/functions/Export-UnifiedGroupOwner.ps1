@@ -24,7 +24,7 @@
     $OutputFileName = $TenantID + 'GroupOwners' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
 
-    Write-Information -MessageData 'Getting All Entra Groups'
+    Write-Information -MessageData 'Getting All Entra Unified Groups'
     $Groups = Get-OGGroup -UnifiedAll -Property $Property
 
     Write-Information -MessageData 'Filtering Entra Groups for Unified Groups, then getting the Group Owners'
