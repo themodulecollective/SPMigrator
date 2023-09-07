@@ -81,6 +81,7 @@
         'Export-AzureADUser'
         'Export-AzureADGroup'
         'Export-UnifiedGroupDrive'
+        'Export-UnifiedGroupOwner'
         'Export-ComplianceRetentionPolicy'
         'Export-SPMReport'
         'Get-SPMMigrationList'

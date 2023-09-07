@@ -1,4 +1,4 @@
-﻿function Export-UnifiedGroupDrive
+﻿function Export-UnifiedGroupOwner
 {
     <#
     .SYNOPSIS
