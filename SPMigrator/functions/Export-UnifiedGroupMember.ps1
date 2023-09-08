@@ -32,7 +32,7 @@
     $UnifiedGroupMembers = @($Groups.foreach({
                 $Group = $_
                 Get-MgGroupMemberAsUser -GroupID $_.ID |
-                Select-Object -ExcludeProperty 'ID' -Property {n='GroupID';e={$Group.ID}},
+                Select-Object -ExcludeProperty 'ID' -Property @{n='GroupID';e={$Group.ID}},
                     @{n='GroupDisplayName';e={$Group.displayName}},
                     @{n='GroupMail';e={$Group.mail}},
                     @{n='MemberID';e={$_.ID}},
