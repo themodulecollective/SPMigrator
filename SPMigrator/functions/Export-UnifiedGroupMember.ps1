@@ -36,7 +36,9 @@
                     @{n='GroupDisplayName';e={$Group.displayName}},
                     @{n='GroupMail';e={$Group.mail}},
                     @{n='MemberID';e={$_.ID}},
-                    *
+                    @{n='MemberDisplayName';e={$_.DisplayName}},
+                    @{n='MemberMail';e={$_.Mail}},
+                    @{n='MemberUserPrincipalName';e={$_.UserPrincipalName}}
             }))
 
     $UnifiedGroupMembers | Export-Excel -Path $OutputFilePath -WorksheetName UnifiedGroupMembers -TableName UnifiedGroupMembers -TableStyle Medium4
