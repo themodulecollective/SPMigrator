@@ -1,16 +1,28 @@
 function Export-SPOExternalUser {
-    [cmdletbinding()]
+    [cmdletbinding(DefaultParameterSetName = 'SiteURL')]
     param(
-        [parameter(Mandatory)]
+        [parameter(Mandatory,ParameterSetName = 'SiteURL')]
         [string[]]$SiteURL
         ,
         [parameter()]
         [string]$OutputFolderPath
+        ,
+        [parameter(ParameterSetName = 'SharingNotDisabled')]
+        [switch]$SharingNotDisabled
     )
 
     $SPOTenant = Get-SPOTenant
     if ($null -eq $SPOTenant)
     {throw('you must connect to a tenant using Connect-SPOService before running Export-SPOSite')}
+
+    switch ($Pscmdlet.ParameterSetName)
+    {
+        'SharingNotDisabled'
+        {
+            $SiteURL = @(@(@(Get-SPOSite -Limit 'ALL').where({$_.SharingCapability -ne 'Disabled'})).URL)
+        }
+    }
+
 
     $ItThrew = $false
     $i = 0
