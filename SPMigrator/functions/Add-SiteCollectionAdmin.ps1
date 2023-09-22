@@ -41,7 +41,7 @@ function Add-SPMSiteCollectionAdmin {
         {
             if ($null -eq $SPMConfiguration.TargetSiteCollectionAdmins -or $SPMConfiguration.TargetSiteCollectionAdmins.count -lt 1 )
             {
-                throw ('TargetSiteCollectionAdmins must be added to SPMConfiguration before running Add-SiteCollectionAdmin'
+                throw ('TargetSiteCollectionAdmins must be added to SPMConfiguration before running Add-SiteCollectionAdmin')
             }
             else
             {
