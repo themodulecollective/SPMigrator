@@ -31,6 +31,8 @@ $Script:ModuleFiles = @(
   $(Join-Path -Path $functions -ChildPath Export-AzureADLicensing.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADUserLicensing.ps1)
   $(Join-Path -Path $functions -ChildPath Export-ComplianceRetentionPolicy.ps1)
+  $(Join-Path -Path $functions -ChildPath Export-SPOSite.ps1)
+  $(Join-Path -Path $functions -ChildPath Export-SPOExternalUser.ps1)
   #$(Join-Path -Path $functions -ChildPath Get-SPMMigrationList.ps1)
   $(Join-Path -Path $functions -ChildPath New-SplitArrayRange.ps1)
   $(Join-Path -Path $functions -ChildPath New-Timer.ps1)

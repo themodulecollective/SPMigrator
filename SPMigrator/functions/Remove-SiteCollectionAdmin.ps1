@@ -17,8 +17,8 @@ function Remove-SPMSiteCollectionAdmin {
     {
         'Source'
         {
-            if ($null -eq $SPMConfiguration.SourceSiteCollectionAdmins
-                -or $SPMConfiguration.SourceSiteCollectionAdmins.count -lt 1 )
+            if ($null -eq $SPMConfiguration.SourceSiteCollectionAdmins -or
+                $SPMConfiguration.SourceSiteCollectionAdmins.count -lt 1 )
             {
                 throw ('SourceSiteCollectionAdmins must be added to SPMConfiguration before running Remove-SiteCollectionAdmin')
             }
@@ -40,8 +40,8 @@ function Remove-SPMSiteCollectionAdmin {
         }
         'Target'
         {
-            if ($null -eq $SPMConfiguration.TargetSiteCollectionAdmins
-                -or $SPMConfiguration.TargetSiteCollectionAdmins.count -lt 1 )
+            if ($null -eq $SPMConfiguration.TargetSiteCollectionAdmins -or
+                $SPMConfiguration.TargetSiteCollectionAdmins.count -lt 1 )
             {
                 throw ('TargetSiteCollectionAdmins must be added to SPMConfiguration before running Remove-SiteCollectionAdmin'
             }

@@ -88,6 +88,8 @@
         'Export-EntraIDGroupMember'
         'Export-ComplianceRetentionPolicy'
         'Export-SPMReport'
+        'Export-SPOSite'
+        'Export-SPOExternalUser'
         'Get-SPMMigrationList'
         #'Get-SortableSizeValue'
         #'Get-WaveMemberVariableValue'
