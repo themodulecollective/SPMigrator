@@ -23,11 +23,10 @@ function Export-SPOExternalUser {
         }
     }
 
-
-    $ItThrew = $false
     $i = 0
     $ExternalSiteUsers = @(
     $SiteURL.foreach({
+        $ItThrew = $false
         $URL = $_
         do {
             try {
