@@ -19,6 +19,8 @@ $Script:SQLFiles = @(
 $Script:ModuleFiles = @(
   $(Join-Path -Path $Scripts -ChildPath 'Initialize.ps1')
   # Load Functions
+  $(Join-Path -Path $functions -ChildPath Add-SiteCollectionAdmin.ps1)
+  $(Join-Path -Path $functions -ChildPath Remove-SiteCollectionAdmin.ps1)
   $(Join-Path -Path $functions -ChildPath Export-ADUser.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADUser.ps1)
   $(Join-Path -Path $functions -ChildPath Export-AzureADGroup.ps1)
