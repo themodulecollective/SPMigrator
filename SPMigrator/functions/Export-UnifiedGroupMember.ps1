@@ -31,14 +31,15 @@
 
     $UnifiedGroupMembers = @($Groups.foreach({
                 $Group = $_
-                Get-MgGroupMemberAsUser -GroupID $_.ID |
+                Get-MgGroupMemberAsUser -GroupID $_.ID -Property ID,DisplayName,Mail,UserPrincipalName,UserType |
                 Select-Object -ExcludeProperty 'ID' -Property @{n='GroupID';e={$Group.ID}},
                     @{n='GroupDisplayName';e={$Group.displayName}},
                     @{n='GroupMail';e={$Group.mail}},
                     @{n='MemberID';e={$_.ID}},
                     @{n='MemberDisplayName';e={$_.DisplayName}},
                     @{n='MemberMail';e={$_.Mail}},
-                    @{n='MemberUserPrincipalName';e={$_.UserPrincipalName}}
+                    @{n='MemberUserPrincipalName';e={$_.UserPrincipalName}},
+                    @{n='MemberUserType';e={$_.UserType}}
             }))
 
     $UnifiedGroupMembers | Export-Excel -Path $OutputFilePath -WorksheetName UnifiedGroupMembers -TableName UnifiedGroupMembers -TableStyle Medium4
