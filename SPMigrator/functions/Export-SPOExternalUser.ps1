@@ -17,7 +17,6 @@ function Export-SPOExternalUser {
     $ExternalSiteUsers = @(
     $SiteURL.foreach({
         $URL = $_
-        until ($ItThrew)
         do {
             try {
                 Get-SPOExternalUser -SiteURL $URL -Position $i -PageSize 50 -ErrorAction Stop |
@@ -29,6 +28,7 @@ function Export-SPOExternalUser {
                 $ItThrew = $true
             }
         }
+        until ($ItThrew)
     })
     )
 
