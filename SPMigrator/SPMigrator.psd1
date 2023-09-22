@@ -83,6 +83,7 @@
         'Export-UnifiedGroupDrive'
         'Export-UnifiedGroupOwner'
         'Export-UnifiedGroupMember'
+        'Export-EntraIDGroupMember'
         'Export-ComplianceRetentionPolicy'
         'Export-SPMReport'
         'Get-SPMMigrationList'
