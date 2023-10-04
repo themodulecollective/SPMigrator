@@ -15,6 +15,10 @@ function Export-SPOSite {
 
     $OutputFileName = 'Sites' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
-    $sites | Export-Excel -path $outputFilePath -WorksheetName 'Sites' -TableName 'Sites' -TableStyle Medium4
-
+    $sites |
+    Select-Object -ExcludeProperty 'InformationSegment','ExcludedBlockDownloadGroupIds','ExcludeBlockDownloadSharePointGroups' `
+        -Property *,@{n='InformationSegment';e={$_.InformationSegment.guid -join '|'}},
+        @{n='ExcludedBlockDownloadGroupIds';e={$_.ExcludedBlockDownloadGroupIds.guid -join '|'}},
+        @{n='ExcludeBlockDownloadSharePointGroups';e={$_.ExcludeBlockDownloadSharePointGroups -join '|'}} |
+    Export-Excel -path $outputFilePath -WorksheetName 'Sites' -TableName 'Sites' -TableStyle Medium4
 }
