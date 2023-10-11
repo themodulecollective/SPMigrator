@@ -40,6 +40,9 @@ $Script:ModuleFiles = @(
   $(Join-Path -Path $functions -ChildPath Get-SortableSizeValue.ps1)
   $(Join-Path -Path $functions -ChildPath Get-SPMConfiguration.ps1)
   $(Join-Path -Path $functions -ChildPath Set-SPMConfiguration.ps1)
+  $(Join-Path -Path $functions -ChildPath New-SPMTargetGroup.ps1)
+  $(Join-Path -Path $functions -ChildPath Get-SPMBacklog.ps1)
+  $(Join-Path -Path $functions -ChildPath Set-SPMBacklogItem.ps1)
   $(Join-Path -Path $functions -ChildPath Export-SPMReport.ps1)
   # Finalize / Run any Module Functions defined above
   $(Join-Path -Path $Scripts -ChildPath 'RunFunctions.ps1')
