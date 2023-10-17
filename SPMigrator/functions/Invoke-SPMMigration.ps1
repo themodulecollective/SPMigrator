@@ -51,6 +51,7 @@ function Invoke-SPMMigration
                         $true
                         {
                             $currentItem = Set-SPMBacklogItem -ID $currentItem.ID -MigrationHost $SPMConfiguration.Hostname -LogMessage "MigrationHost Nominated:$($SPMConfiguration.hostname)"
+                            Write-Information -MessageData 'MigrationHost Nominated'
                             Start-Sleep -Seconds $SPMConfiguration.ItemClaimSleep
                             $currentItem = Get-SPMBacklogItem -ID $currentItem.ID
                             switch ($currentItem.MigrationHost -eq $SPMConfiguration.Hostname)
@@ -63,6 +64,7 @@ function Invoke-SPMMigration
                                 $false
                                 {
                                     $currentItem = Set-SPMBacklogItem -ID $currentItem.ID -LogMessage "MigrationHost Yielded:$($SPMConfiguration.hostname)"
+                                    Write-Information -MessageData 'MigrationHost Yielded'
                                     continue nextprocess
                                 }
                             }
@@ -70,6 +72,7 @@ function Invoke-SPMMigration
                         $false
                         {
                             $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "MigrationHost Not Contested:$($SPMConfiguration.hostname)"
+                            Write-Information -MessageData 'MigrationHost Not Contested'
                             continue nextprocess
                         }
                     }
