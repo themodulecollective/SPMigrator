@@ -20,6 +20,10 @@ function Invoke-SPMMigration
         [parameter(Mandatory)]
         [ValidateSet('InitialDataMigration', 'DeltaDataMigration')]
         [string]$CopySiteStatus
+        ,
+        [parameter(Mandatory)]
+        [ValidateSet('QualityAssurance', 'UserAcceptanceTesting')]
+        [string]$CopySiteCompletedStatus
     )
 
     Write-Information -MessageData 'Creating MappingSettings'
@@ -31,7 +35,7 @@ function Invoke-SPMMigration
     $xProgressID = New-xProgress -ArrayToProcess $ToProcess -CalculatedProgressInterval 1Percent -Activity 'Initial Data Migration'
     :nextprocess foreach ($i in $ToProcess)
     {
-        $currentItem = Set-SPMBacklogItem -ID $i.ID -LogMessage "MigrationHost Processing:$($SPMConfiguration.hostname)"
+        $currentItem = Set-SPMBacklogItem -Id $i.ID -LogMessage "MigrationHost Processing:$($SPMConfiguration.hostname)"
         $status = "Processing Site $($currentItem.SourceGroupMail)"
         Set-xProgress -Status $status -Activity 'Process Migration Operations' -Identity $xProgressID
         Write-xProgress -Identity $xProgressID
@@ -50,20 +54,20 @@ function Invoke-SPMMigration
                     {
                         $true
                         {
-                            $currentItem = Set-SPMBacklogItem -ID $currentItem.ID -MigrationHost $SPMConfiguration.Hostname -LogMessage "MigrationHost Nominated:$($SPMConfiguration.hostname)"
+                            $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -MigrationHost $SPMConfiguration.Hostname -LogMessage "MigrationHost Nominated:$($SPMConfiguration.hostname)"
                             Write-Information -MessageData 'MigrationHost Nominated'
                             Start-Sleep -Seconds $SPMConfiguration.ItemClaimSleep
-                            $currentItem = Get-SPMBacklogItem -ID $currentItem.ID
+                            $currentItem = Get-SPMBacklogItem -Id $currentItem.ID
                             switch ($currentItem.MigrationHost -eq $SPMConfiguration.Hostname)
                             {
                                 $true
                                 {
-                                    $currentItem = Set-SPMBacklogItem -ID $currentItem.ID -LogMessage "MigrationHost Confirmed:$($SPMConfiguration.hostname)"
+                                    $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "MigrationHost Confirmed:$($SPMConfiguration.hostname)"
                                     Write-Information -MessageData 'MigrationHost Confirmed'
                                 }
                                 $false
                                 {
-                                    $currentItem = Set-SPMBacklogItem -ID $currentItem.ID -LogMessage "MigrationHost Yielded:$($SPMConfiguration.hostname)"
+                                    $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "MigrationHost Yielded:$($SPMConfiguration.hostname)"
                                     Write-Information -MessageData 'MigrationHost Yielded'
                                     continue nextprocess
                                 }
@@ -71,7 +75,7 @@ function Invoke-SPMMigration
                         }
                         $false
                         {
-                            $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "MigrationHost Not Contested:$($SPMConfiguration.hostname)"
+                            $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "MigrationHost Not Contested:$($SPMConfiguration.hostname)"
                             Write-Information -MessageData 'MigrationHost Not Contested'
                             continue nextprocess
                         }
@@ -86,13 +90,13 @@ function Invoke-SPMMigration
                     {
                         $status = 'Add QA Site Collection Owners to Source Site'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         $null = Set-PnPTenantSite -Url $currentItem.SourceSiteURL -Owners $SPMConfiguration.SourceSiteCollectionAdmins -Connection $PNPSource
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -105,13 +109,13 @@ function Invoke-SPMMigration
                     {
                         $status = 'Create Target Unified Group'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status" -MigrationStatus ProvisionTarget
-                        $currentGroup = New-SPMTargetGroup -SourceRecord $currentItem -Method AzureAD
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status" -MigrationStatus ProvisionTarget
+                        $currentGroup = New-SPMTargetGroup -SourceRecord $currentItem -method AzureAD
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -140,13 +144,13 @@ function Invoke-SPMMigration
                     {
                         $status = 'Add QA Site Collection Owners to Target Site'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         $null = Set-PnPTenantSite -Url $currentItem.TargetSiteURL -Owners $SPMConfiguration.TargetSiteCollectionAdmins -Connection $PNPTarget -ErrorAction Stop
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -158,26 +162,26 @@ function Invoke-SPMMigration
                     {
                         $status = 'Connect ShareGate to Source Site'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         $SGSourceSite = Connect-Site -Url $currentItem.SourceSiteURL -UseCredentialsFrom $SGSource -ErrorAction Stop
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                     try
                     {
                         $status = 'Connect ShareGate to Target Site'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         $SGTargetSite = Connect-Site -Url $currentItem.TargetSiteURL -UseCredentialsFrom $SGTarget -ErrorAction Stop
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -189,14 +193,14 @@ function Invoke-SPMMigration
                     {
                         $status = 'Perform ShareGate Copy-ObjectPermissions for Site'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         Write-Information -MessageData "$($StartTime | Get-Date -Format yyyyMMdd-HHmm) status Start: $status" -InformationAction Continue
                         Copy-ObjectPermissions -Source $SGSourceSite -Destination $SGTargetSite -MappingSettings $MappingSettings
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -208,7 +212,7 @@ function Invoke-SPMMigration
                     {
                         $status = 'Perform ShareGate Copy-Site'
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status" -MigrationStatus $CopySiteStatus
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status" -MigrationStatus $CopySiteStatus
                         $StartTime = Get-Date
                         $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
                         Write-Information -MessageData "$($StartTime | Get-Date -Format yyyyMMdd-HHmm) status Start: $status" -InformationAction Continue
@@ -217,11 +221,11 @@ function Invoke-SPMMigration
                         $EndTime = $StartTime.Add($StopWatch.Elapsed)
                         Write-Information -MessageData "$($EndTime | Get-Date -Format yyyyMMdd-HHmm) status Complete: $status" -InformationAction Continue
                         Write-Information -MessageData "status Elapsed Time in Minutes: $($stopWatch.Elapsed.TotalMinutes)" -InformationAction Continue
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status" -MigrationStatus QualityAssurance
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status" -MigrationStatus $CopySiteCompletedStatus
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -235,26 +239,26 @@ function Invoke-SPMMigration
                         $FilePath = Join-Path -Path $SPMConfiguration.Reports -ChildPath $FileName
                         $status = "Export ShareGate Copy-Site Report to $($SPMConfiguration.hostname) $FilePath"
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         $null = Export-Report -CopyResult $CopySite -Path $FilePath -ErrorAction Stop
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                     try
                     {
                         $status = "Upload ShareGate Copy-Site Report $FileName to Migration Report Library"
                         Write-Information -MessageData $status
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Attempting: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status"
                         $null = Add-PnPFile -Path $FilePath -Folder $SPMConfiguration.ReportLibraryFolder -Values @{MigrationWave = $currentItem.MigrationWave} -Connection $PNPTarget
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Succeeded: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
                     }
                     catch
                     {
-                        $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage "Failed: $status"
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
                         throw($_)
                     }
                 }
@@ -262,7 +266,7 @@ function Invoke-SPMMigration
         }
         catch
         {
-            $currentItem = Set-SPMBacklogItem -id $currentItem.ID -LogMessage $_.ToString()
+            $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage $_.ToString()
         }
     }
     Complete-xProgress -Identity $xProgressID
