@@ -1,5 +1,6 @@
-﻿function New-SPMTargetGroup {
-    
+﻿function New-SPMTargetGroup
+{
+
     param(
         [parameter(Mandatory)]
         [hashtable]$SourceRecord
@@ -18,7 +19,13 @@
                 Description     = $SourceRecord.SiteDescription
                 DisplayName     = $SourceRecord.SourceGroupDisplayName
                 MailEnabled     = $true
-                MailNickname    = $SourceRecord.SourceGroupMailNickname
+                MailNickname    = switch ($SourceRecord.Tags -contains 'NewMailNickname')
+                {
+                    $true
+                    {$SourceRecord.TargetGroupMailNickname}
+                    $false
+                    {$SourceRecord.SourceGroupMailNickname}
+                }
                 GroupTypes      = 'Unified'
                 Visibility      = $SourceRecord.SourceGroupVisibility
                 SecurityEnabled = $true

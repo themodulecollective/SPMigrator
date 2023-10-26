@@ -4,5 +4,9 @@ function Get-SPMBacklog
         [parameter(Mandatory)]
         [PnP.PowerShell.Commands.Base.PnPConnection]$PNPConnection
     )
-    Get-PNPListItem -List $SPMConfiguration.BacklogList -Connection $PNPConnection
+    $BacklogDictionaries = @(Get-PnPListItem -List $SPMConfiguration.BacklogList -Connection $PNPConnection |
+        Select-Object -ExpandProperty FieldValues)
+
+    $BacklogDictionaries.foreach({New-Object -TypeName psobject -Property $_})
+
 }

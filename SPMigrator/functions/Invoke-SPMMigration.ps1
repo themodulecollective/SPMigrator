@@ -6,7 +6,7 @@ function Invoke-SPMMigration
         [psobject[]]$ToProcess
         ,
         [parameter(Mandatory)]
-        [ValidateSet('HostSelection', 'PrepareSource', 'ProvisionTarget', 'UpdateBacklog', 'PrepareTarget', 'ConnectSharegate', 'Copy-SitePermissions', 'Copy-Site', 'Report')]
+        [ValidateSet('HostSelection', 'PrepareSource', 'ProvisionTarget', 'ProvisionTargetSite', 'UpdateBacklog', 'PrepareTarget', 'ConnectSharegate', 'Copy-SitePermissions', 'Copy-Site', 'Report')]
         [string[]]$Operation
         ,
         [parameter(Mandatory)]
@@ -24,20 +24,24 @@ function Invoke-SPMMigration
         [parameter(Mandatory)]
         [ValidateSet('QualityAssurance', 'UserAcceptanceTesting')]
         [string]$CopySiteCompletedStatus
+        ,
+        [parameter()]
+        [string]$WriteProgressActivity
     )
 
     Write-Information -MessageData 'Creating MappingSettings'
     $MappingSettings = Import-UserAndGroupMapping -Path $SPMConfiguration.UserMappingFile
     #$MappingSettings = Set-UserAndGroupMapping -MappingSettings $MappingSettings -UnresolvedUserOrGroup -Destination 'RMR-SR-Mig-Usr2@multihosp.net'
     Write-Information -MessageData 'Creating CopySettings'
-    $CopySettings = New-CopySettings -OnContentItemExists Overwrite
+    $CopySettings = New-CopySettings -OnContentItemExists $OnContentItemExists -OnSiteObjectExists $OnSiteObjectExists
     Write-Information -MessageData "Entering Processing Loop with $($ToProcess.count) Items"
-    $xProgressID = New-xProgress -ArrayToProcess $ToProcess -CalculatedProgressInterval 1Percent -Activity 'Initial Data Migration'
+    if (-not $PSBoundParameters.ContainsKey('WriteProgressActivity')) {$WriteProgressActivity = 'Process Migration Operations'}
+    $xProgressID = New-xProgress -ArrayToProcess $ToProcess -ExplicitProgressInterval 1 -Activity $WriteProgressActivity
     :nextprocess foreach ($i in $ToProcess)
     {
-        $currentItem = Set-SPMBacklogItem -Id $i.ID -LogMessage "MigrationHost Processing:$($SPMConfiguration.hostname)"
-        $status = "Processing Site $($currentItem.SourceGroupMail)"
-        Set-xProgress -Status $status -Activity 'Process Migration Operations' -Identity $xProgressID
+        $currentItem = Get-SPMBacklogItem -Id $i.ID
+        $status = "Processing Backlog Site $($currentItem.ID)"
+        Set-xProgress -Status $status -Identity $xProgressID
         Write-xProgress -Identity $xProgressID
         Write-Information -MessageData $status
 
@@ -47,9 +51,6 @@ function Invoke-SPMMigration
             {
                 'HostSelection'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
-
                     switch ([string]::IsNullOrWhiteSpace($currentItem.MigrationHost))
                     {
                         $true
@@ -83,8 +84,6 @@ function Invoke-SPMMigration
                 }
                 'PrepareSource'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     #Prepare Source
                     try
                     {
@@ -102,8 +101,6 @@ function Invoke-SPMMigration
                 }
                 'ProvisionTarget'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     #Provision Target
                     try
                     {
@@ -119,27 +116,65 @@ function Invoke-SPMMigration
                         throw($_)
                     }
                 }
+                'ProvisionTargetSite'
+                {
+                    #Provision Target
+                    try
+                    {
+                        $status = 'Create Target Site'
+                        Write-Information -MessageData $status
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status" -MigrationStatus ProvisionTarget
+                        $sourceSite = Get-PnPTenantSite -Identity $currentItem.SourceSiteURL -Connection $PNPSource -ErrorAction Stop
+                        [URI]$sourceURL = $sourceSite.Url
+                        $newSiteURL = $spmConfiguration.TargetURLBase + $sourceURL.AbsolutePath
+                        $newPNPTenantSiteParams = @{
+                            Connection   = $PNPTarget
+                            Template     = $currentItem.RootWebTemplate
+                            Title        = $sourceSite.Title
+                            StorageQuota = 1024
+                            TimeZone     = $SPMConfiguration.PNPPreferredTimeZone
+                            Url          = $newSiteURL
+                            Wait         = $true
+                            Owner        = $SPMConfiguration.NonGroupSiteOwner
+                        }
+                        #$newPNPTenantSiteParams
+                        New-PnPTenantSite @newPNPTenantSiteParams
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Succeeded: $status"
+                    }
+                    catch
+                    {
+                        $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Failed: $status"
+                        throw($_)
+                    }
+                }
                 'UpdateBacklog'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     $status = 'Update Backlog with Target Details'
                     Write-Information -MessageData $status
-                    $currentPNPGroup = Get-PnPMicrosoft365Group -Identity $currentGroup.ID -IncludeSiteUrl -Connection $PNPTarget
-                    $setBIParams = @{
-                        id                      = $currentItem.ID
-                        LogMessage              = $status
-                        TargetSiteURL           =  $currentPNPGroup.SiteURL
-                        TargetGroupMailNickname = $currentPNPGroup.MailNickname
-                        TargetGroupMail         = $currentPNPGroup.Mail
-                        TargetGroupID           = $currentPNPGroup.GroupID
+                    if ($Operation -contains 'ProvisionTarget')
+                    {
+                        $currentPNPGroup = Get-PnPMicrosoft365Group -Identity $currentGroup.ID -IncludeSiteUrl -Connection $PNPTarget
+                        $setBIParams = @{
+                            id                      = $currentItem.ID
+                            LogMessage              = $status
+                            TargetSiteURL           = $currentPNPGroup.SiteURL
+                            TargetGroupMailNickname = $currentPNPGroup.MailNickname
+                            TargetGroupMail         = $currentPNPGroup.Mail
+                            TargetGroupID           = $currentPNPGroup.GroupID
+                        }
+                    }
+                    if ($Operation -contains 'ProvisionTargetSite')
+                    {
+                        $setBIParams = @{
+                            id            = $currentItem.ID
+                            LogMessage    = $status
+                            TargetSiteURL = $newSiteURL
+                        }
                     }
                     $currentItem = Set-SPMBacklogItem @setBIParams
                 }
                 'PrepareTarget'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     try
                     {
                         $status = 'Add QA Site Collection Owners to Target Site'
@@ -156,8 +191,6 @@ function Invoke-SPMMigration
                 }
                 'ConnectSharegate'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     try
                     {
                         $status = 'Connect ShareGate to Source Site'
@@ -187,8 +220,6 @@ function Invoke-SPMMigration
                 }
                 'Copy-SitePermissions'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     try
                     {
                         $status = 'Perform ShareGate Copy-ObjectPermissions for Site'
@@ -206,8 +237,6 @@ function Invoke-SPMMigration
                 }
                 'Copy-Site'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     try
                     {
                         $status = 'Perform ShareGate Copy-Site'
@@ -216,7 +245,7 @@ function Invoke-SPMMigration
                         $StartTime = Get-Date
                         $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
                         Write-Information -MessageData "$($StartTime | Get-Date -Format yyyyMMdd-HHmm) status Start: $status" -InformationAction Continue
-                        $CopySite = Copy-Site -Site $SGSourceSite -DestinationSite $SGTargetSite -Merge -MappingSettings $MappingSettings -CopySettings $CopySettings -VersionLimit $SPMConfiguration.VersionLimit -TaskName $currentItem.TargetGroupMail -ErrorAction Stop
+                        $CopySite = Copy-Site -Site $SGSourceSite -DestinationSite $SGTargetSite -Merge -MappingSettings $MappingSettings -CopySettings $CopySettings -VersionLimit $SPMConfiguration.VersionLimit -TaskName $currentItem.ID -ErrorAction Stop
                         $StopWatch.Stop()
                         $EndTime = $StartTime.Add($StopWatch.Elapsed)
                         Write-Information -MessageData "$($EndTime | Get-Date -Format yyyyMMdd-HHmm) status Complete: $status" -InformationAction Continue
@@ -231,8 +260,6 @@ function Invoke-SPMMigration
                 }
                 'Report'
                 {
-                    Set-xProgress -Identity $xProgressID -CurrentOperation $_
-                    Write-xProgress -Identity $xProgressID -DoNotIncrement
                     try
                     {
                         $FileName = 'InitialDataMigration-' + $currentItem.SourceGroupMailNickname + '-CompletedAt' + $($EndTime | Get-Date -Format yyyyMMdd-HHmm) + '.xlsx'

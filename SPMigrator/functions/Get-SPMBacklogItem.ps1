@@ -23,6 +23,8 @@ function Get-SPMBacklogItem
 #>
     )
 
-    Get-PnPListItem -Connection $PNPTarget -List $SPMConfiguration.BacklogList -Id $Id | Select-Object -ExpandProperty FieldValues
+    $Item = Get-PnPListItem -Connection $PNPTarget -List $SPMConfiguration.BacklogList -Id $Id |
+    Select-Object -ExpandProperty FieldValues
 
+    New-Object -TypeName psobject -Property $Item
 }
