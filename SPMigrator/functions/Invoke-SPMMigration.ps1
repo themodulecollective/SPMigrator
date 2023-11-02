@@ -39,6 +39,11 @@ function Invoke-SPMMigration
     $xProgressID = New-xProgress -ArrayToProcess $ToProcess -ExplicitProgressInterval 1 -Activity $WriteProgressActivity
     :nextprocess foreach ($i in $ToProcess)
     {
+        if (Test-Path -Path $SPMConfiguration.StopProcess -PathType Leaf)
+        {
+            Write-Information -MessageData 'Detected Stop Process Signal from Operator' -InformationAction Continue
+            break :nextprocess
+        }
         $currentItem = Get-SPMBacklogItem -Id $i.ID
         $status = "Processing Backlog Site $($currentItem.ID)"
         Set-xProgress -Status $status -Identity $xProgressID
@@ -126,12 +131,20 @@ function Invoke-SPMMigration
                         $currentItem = Set-SPMBacklogItem -Id $currentItem.ID -LogMessage "Attempting: $status" -MigrationStatus ProvisionTarget
                         $sourceSite = Get-PnPTenantSite -Identity $currentItem.SourceSiteURL -Connection $PNPSource -ErrorAction Stop
                         [URI]$sourceURL = $sourceSite.Url
-                        $newSiteURL = $spmConfiguration.TargetURLBase + $sourceURL.AbsolutePath
+                        $newSiteURL = $(
+                            switch ($null -eq $currentItem.TargetSiteURL)
+                            {
+                                $true
+                                {$spmConfiguration.TargetURLBase + $sourceURL.AbsolutePath}
+                                $false
+                                {$currentItem.TargetSiteURL}
+                            })
+
                         $newPNPTenantSiteParams = @{
                             Connection   = $PNPTarget
                             Template     = $currentItem.RootWebTemplate
                             Title        = $sourceSite.Title
-                            StorageQuota = 1024
+                            StorageQuota = $currentItem.StorageUsedMB + 1024
                             TimeZone     = $SPMConfiguration.PNPPreferredTimeZone
                             Url          = $newSiteURL
                             Wait         = $true
