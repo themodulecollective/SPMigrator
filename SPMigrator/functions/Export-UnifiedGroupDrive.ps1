@@ -19,9 +19,10 @@
 
     $DateString = Get-Date -Format yyyyMMddhhmmss
 
-    $TenantID = (Get-MgContext).TenantID
+    #$TenantID = (Get-MgContext).TenantID
+    $TenantDomain = (Get-MGDomain -All).where({$_.IsDefault}).ID.split('.')[0]
 
-    $OutputFileName = $TenantID + 'GroupDrives' + 'AsOf' + $DateString
+    $OutputFileName = $TenantDomain + '-GroupDrives' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
 
     Write-Information -MessageData 'Getting All Entra Groups'
@@ -29,7 +30,7 @@
 
     Write-Information -MessageData 'Filtering Entra Groups for Unified Groups, then getting the Group Drive'
     $UnifiedGroupDrives = @($Groups.foreach({
-                Get-OGGroupDrive -GroupID $_.ID | Select-Object -Property *, @{n='TenantID'; e={$TenantID}}
+                Get-OGGroupDrive -GroupID $_.ID | Select-Object -Property *, @{n='TenantDomain'; e={$TenantDomain}}
             }))
 
     $UnifiedGroupDrives | Export-Excel -Path $OutputFilePath -WorksheetName UnifiedGroupDrives -TableName UnifiedGroupDrives -TableStyle Medium4
