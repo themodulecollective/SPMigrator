@@ -19,9 +19,10 @@
 
     $DateString = Get-Date -Format yyyyMMddhhmmss
 
-    $TenantID = (Get-MgContext).TenantID
+    #$TenantID = (Get-MgContext).TenantID
+    $TenantDomain = (Get-MGDomain -All).where({$_.IsDefault}).ID.split('.')[0]
 
-    $OutputFileName = $TenantID + 'GroupMembers' + 'AsOf' + $DateString
+    $OutputFileName = $TenantDomain + '-GroupMembers' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
 
     Write-Information -MessageData 'Getting All Entra Unified Groups'
@@ -39,7 +40,8 @@
                     @{n='MemberDisplayName';e={$_.DisplayName}},
                     @{n='MemberMail';e={$_.Mail}},
                     @{n='MemberUserPrincipalName';e={$_.UserPrincipalName}},
-                    @{n='MemberUserType';e={$_.UserType}}
+                    @{n='MemberUserType';e={$_.UserType}},
+                    @{n='TenantDomain'; e={$TenantDomain}}
             }))
 
     $UnifiedGroupMembers | Export-Excel -Path $OutputFilePath -WorksheetName UnifiedGroupMembers -TableName UnifiedGroupMembers -TableStyle Medium4
