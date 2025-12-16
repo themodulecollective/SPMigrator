@@ -24,13 +24,15 @@ function Remove-SPMSiteCollectionAdmin
             }
             else
             {
-                $SPMConfiguration.SourceSiteCollectionAdmins.foreach({
-                        $LoginName = $_
-                        $SiteURL.foreach({
-                                $Site = $_
+                $xpiD = New-xProgress -ArrayToProcess $SiteURL -CalculatedProgressInterval 1Percent -Activity "Removing Site Collection Admin(s) from $($SiteURL.count) sites"
+                $SiteURL.foreach({
+                        $Site = $_
+                        Write-xProgress -Identity $xpiD
+                        $SPMConfiguration.SourceSiteCollectionAdmins.foreach({
+                                $LoginName = $_
                                 try
                                 {
-                                    Set-SPOUser -LoginName $LoginName -Site $Site -IsSiteCollectionAdmin $false
+                                    $null = Set-SPOUser -LoginName $LoginName -Site $Site -IsSiteCollectionAdmin $false
                                 }
                                 catch
                                 {
@@ -38,6 +40,7 @@ function Remove-SPMSiteCollectionAdmin
                                 }
                             })
                     })
+                Complete-xProgress -Identity $xpiD
             }
         }
         'Target'
@@ -48,13 +51,16 @@ function Remove-SPMSiteCollectionAdmin
             }
             else
             {
-                $SPMConfiguration.TargetSiteCollectionAdmins.foreach({
-                        $LoginName = $_
-                        $SiteURL.foreach({
-                                $Site = $_
+                $xpiD = New-xProgress -ArrayToProcess $SiteURL -CalculatedProgressInterval 1Percent -Activity "Removing Site Collection Admin(s) from $($SiteURL.count) sites"
+                $SiteURL.foreach({
+                        $Site = $_
+                        Write-xProgress -Identity $xpiD
+                        $SPMConfiguration.TargetSiteCollectionAdmins.foreach({
+                                $LoginName = $_
+
                                 try
                                 {
-                                    Set-SPOUser -LoginName $LoginName -Site $Site -IsSiteCollectionAdmin $false
+                                    $null = Set-SPOUser -LoginName $LoginName -Site $Site -IsSiteCollectionAdmin $false
                                 }
                                 catch
                                 {
@@ -62,6 +68,7 @@ function Remove-SPMSiteCollectionAdmin
                                 }
                             })
                     })
+                Complete-xProgress -Identity $xpiD
             }
         }
     }

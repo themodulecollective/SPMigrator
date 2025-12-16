@@ -1,7 +1,8 @@
-function Export-SPOExternalUser {
+function Export-SPOExternalUser
+{
     [cmdletbinding(DefaultParameterSetName = 'SiteURL')]
     param(
-        [parameter(Mandatory,ParameterSetName = 'SiteURL')]
+        [parameter(Mandatory, ParameterSetName = 'SiteURL')]
         [string[]]$SiteURL
         ,
         [parameter()]
@@ -23,29 +24,32 @@ function Export-SPOExternalUser {
         }
     }
 
-    $i = 0
     $ExternalSiteUsers = @(
-    $SiteURL.foreach({
-        $ItThrew = $false
-        $URL = $_
-        do {
-            try {
-                Get-SPOExternalUser -SiteURL $URL -Position $i -PageSize 50 -ErrorAction Stop |
-                Select-Object -Property DisplayName,Email,InvitedBy,AcceptedAs,WhenCreated,
-                    @{n='SiteURL';e={$URL}}
-                $i+=50
-            }
-            catch {
-                $ItThrew = $true
-            }
-        }
-        until ($ItThrew)
-    })
+        $SiteURL.foreach({
+                $i = 0
+                $ItThrew = $false
+                $URL = $_
+                do
+                {
+                    try
+                    {
+                        Get-SPOExternalUser -SiteURL $URL -Position $i -PageSize 50 -ErrorAction Stop |
+                        Select-Object -Property DisplayName, Email, InvitedBy, AcceptedAs, WhenCreated,
+                        @{n='SiteURL'; e={$URL}}
+                        $i+=50
+                    }
+                    catch
+                    {
+                        $ItThrew = $true
+                    }
+                }
+                until ($ItThrew)
+            })
     )
 
     $DateString = Get-Date -Format yyyyMMddhhmmss
     $OutputFileName = 'ExternalSiteUsers' + 'AsOf' + $DateString
     $OutputFilePath = Join-Path -Path $OutputFolderPath -ChildPath $($OutputFileName + '.xlsx')
-    $ExternalSiteUsers | Export-Excel -path $outputFilePath -WorksheetName 'ExternalUsers' -TableName 'ExternalUsers' -TableStyle Medium4
+    $ExternalSiteUsers | Export-Excel -Path $outputFilePath -WorksheetName 'ExternalUsers' -TableName 'ExternalUsers' -TableStyle Medium4
 
 }
